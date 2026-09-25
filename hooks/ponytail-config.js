@@ -83,6 +83,11 @@ function getDefaultMode() {
     return envMode.toLowerCase();
   }
 
+  // ponytail: claude-code-action runs (CI audits) load this plugin via org managed
+  // settings and can't set env for it; default to off there so it doesn't steer
+  // reviewers. An explicit PONYTAIL_DEFAULT_MODE above still wins.
+  if (process.env.CLAUDE_CODE_ENTRYPOINT === 'claude-code-github-action') return 'off';
+
   // 2. Config file
   try {
     const configPath = getConfigPath();

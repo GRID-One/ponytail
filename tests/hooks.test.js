@@ -18,6 +18,19 @@ assert.equal(isShellSafe('/tmp/a"&calc.exe&"/x.sh'), false);
 assert.equal(isShellSafe('/tmp/$(calc)/x.sh'), false);
 assert.equal(isShellSafe('/tmp/a;rm -rf/x.sh'), false);
 
+// claude-code-action runs default to off (org-managed plugin in CI audits); an explicit env mode still wins.
+{
+  const saved = { ep: process.env.CLAUDE_CODE_ENTRYPOINT, mode: process.env.PONYTAIL_DEFAULT_MODE };
+  process.env.CLAUDE_CODE_ENTRYPOINT = 'claude-code-github-action';
+  delete process.env.PONYTAIL_DEFAULT_MODE;
+  assert.equal(getDefaultMode(), 'off');
+  process.env.PONYTAIL_DEFAULT_MODE = 'lite';
+  assert.equal(getDefaultMode(), 'lite');
+  for (const [k, v] of [['CLAUDE_CODE_ENTRYPOINT', saved.ep], ['PONYTAIL_DEFAULT_MODE', saved.mode]]) {
+    if (v === undefined) delete process.env[k]; else process.env[k] = v;
+  }
+}
+
 function run(script, env, input = '') {
   return spawnSync(process.execPath, [path.join(root, 'hooks', script)], {
     env: { ...process.env, ...env },
